@@ -6,7 +6,7 @@ Contributors: Luis, Prasana & Scott
 
 ## Requirements
 
-#### Modules / Libraries
+##### Modules / Libraries
 
 * Websocket Client Python
 * Alpaca Trade API
