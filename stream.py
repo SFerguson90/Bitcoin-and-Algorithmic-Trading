@@ -1,15 +1,24 @@
 # IMPORTS
 import os, websocket, json, pprint
-import plotly.graph_objects as go
 import pandas as pd
+import numpy as np
+import plotly.graph_objects as go
+import holoviews as hv
+import streamz
+import streamz.dataframe
+
 from dotenv import load_dotenv
 from datetime import datetime
+from holoviews import opts
+from holoviews.streams import Pipe, Buffer
 
+hv.extension('bokeh')
 
 # VARIABLES
 symbol = "TSLA"
 times = list()
 prices = list()
+df = pd.DataFrame()
 
 # ALPACA SOCKET CONNECTION
 socket = "wss://data.alpaca.markets/stream"
@@ -20,14 +29,6 @@ load_dotenv(verbose=True)
 # SET ALPACA API KEYS FROM .ENV FILE
 alpaca_api_key = os.getenv("ALPACA_API_KEY")
 alpaca_secret_key = os.getenv("ALPACA_SECRET_KEY")
-
-# INSTANTIATE FIGURE WIDGET
-fig = go.FigureWidget()
-fig.layout.title = f"{symbol}"
-fig.show()
-
-# INSTANTIATE DATAFRAME
-df = pd.DataFrame()
 
 ###### FUNCTIONS / DICTIONARIES TO SEND / MESSAGES
 
@@ -61,6 +62,7 @@ def on_message(ws, message):
 
     global times
     global prices
+    global df
 
     # VARIABLES
     if message_data["data"]["ev"] == 'Q':
@@ -76,9 +78,7 @@ def on_message(ws, message):
         time = datetime.now()
         times.append(time)
         prices.append(float(ask_price))
-        with fig.batch_update():
-            fig.data[0].x = times
-            fig.data[0].y = prices
+        df = df.append(pd.DataFrame(data={symbol:ask_price}, index=[time]))
 
     if message_data["data"]["ev"] == 'T':
 
@@ -88,6 +88,10 @@ def on_message(ws, message):
         trade_size = message_data["data"]["s"]
         trade_price = message_data["data"]["p"]
 
+        time = datetime.now()
+        times.append(time)
+        prices.append(float(trade_price))
+
     if message_data["data"]["ev"] == 'AM':
 
         # VARIABLES FOR MINUTE BAR SCHEMA
@@ -96,6 +100,10 @@ def on_message(ws, message):
         high_price = message_data["data"]["h"]
         low_price = message_data["data"]["l"]
         close_price = message_data["data"]["c"]
+
+        time = datetime.datetime.now()
+        times.append(time)
+        prices.append(float(close_price))
 
 # CLOSE
 def on_close(ws):

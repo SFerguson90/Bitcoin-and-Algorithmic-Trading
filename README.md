@@ -16,10 +16,8 @@ NODE.JS OR NPM DEPENDENCIES
 PYTHON DEPENDENCIES
 * Python WebSocket Client
 * Alpaca Trade API
-* iPyWidgets
-* * jupyter labextension install jupyterlab-plotly
-* * jupyter labextension install @jupyter-widgets/jupyterlab-manager
-* * jupyter labextension install plotlywidgets
+* Streamz 0.6.1
+
 ## Thesis
 
 ## Challenges
