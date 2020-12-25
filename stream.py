@@ -1,23 +1,23 @@
 # IMPORTS
-import os, websocket, json, pprint
+import os, websocket, json, pprint, dash, plotly
 import pandas as pd
 import numpy as np
-import plotly.graph_objects as go
-import holoviews as hv
-import streamz
-import streamz.dataframe
+import dash_core_components as dcc
+import dash_html_components as html
+import dash_bootstrap_components as dbc
+import plotly.graph_objs as go
 
-from dotenv import load_dotenv
 from datetime import datetime
-from holoviews import opts
-from holoviews.streams import Pipe, Buffer
-
-hv.extension('bokeh')
+from dash.dependencies import Output, Input
+from collections import deque
+from dotenv import load_dotenv
 
 # VARIABLES
 symbol = "TSLA"
-times = list()
-prices = list()
+times = deque(maxlen=500)
+times.append(1)
+prices = deque(maxlen=500)
+prices.append(1)
 df = pd.DataFrame()
 
 # ALPACA SOCKET CONNECTION
@@ -35,6 +35,18 @@ alpaca_secret_key = os.getenv("ALPACA_SECRET_KEY")
 # OPEN
 def on_open(ws):
     print("Opening Connection to Alpaca API Services")
+
+    app = dash.Dash(__name__)
+    app.layout = html.Div([
+            dcc.Graph(id='live-graph', animate=True),
+            dcc.Interval(
+                id='graph-update',
+                interval=100,
+                n_intervals = 0
+            )
+        ])
+    app.run_server(debug=True)
+
     auth_data = {
         "action": "authenticate",
         "data": {
@@ -60,6 +72,7 @@ def on_message(ws, message):
     # Turn string into dictionary
     message_data = json.loads(message)
 
+    # Global Variables
     global times
     global prices
     global df
@@ -77,8 +90,9 @@ def on_message(ws, message):
 
         time = datetime.now()
         times.append(time)
-        prices.append(float(ask_price))
+        prices.append(ask_price)
         df = df.append(pd.DataFrame(data={symbol:ask_price}, index=[time]))
+        app.callback(Output('live-graph', 'figure'),[Input('graph-update', 'n_intervals')])
 
     if message_data["data"]["ev"] == 'T':
 
@@ -87,10 +101,6 @@ def on_message(ws, message):
         nano_time = message_data["data"]["t"]
         trade_size = message_data["data"]["s"]
         trade_price = message_data["data"]["p"]
-
-        time = datetime.now()
-        times.append(time)
-        prices.append(float(trade_price))
 
     if message_data["data"]["ev"] == 'AM':
 
@@ -101,16 +111,32 @@ def on_message(ws, message):
         low_price = message_data["data"]["l"]
         close_price = message_data["data"]["c"]
 
-        time = datetime.datetime.now()
-        times.append(time)
-        prices.append(float(close_price))
-
 # CLOSE
 def on_close(ws):
     print("Closing Connection to Alpaca API Services")
 
+def update_graph_scatter(n):
+    times.append(times)
+    prices.append(prices)
+
+    data = plotly.graph_objs.Scatter(
+            x=list(times),
+            y=list(prices),
+            name='Scatter',
+            mode= 'lines+markers'
+            )
+
+    return {'data': [data],'layout' : go.Layout(xaxis=dict(range=[min(times),max(times)]),
+                                                yaxis=dict(range=[min(prices),max(prices)]),)}
+
+
+
 # SOCKET OBJECT INSTANTIATED 
-ws = websocket.WebSocketApp(socket, on_open=on_open, on_message=on_message, on_close=on_close)
+ws = websocket.WebSocketApp(socket, on_open=on_open,
+                            on_message=on_message, 
+                            on_close=on_close)
+
 
 # GO GO GO
-ws.run_forever()
+if __name__ == '__main__':
+    running_man = ws.run_forever()

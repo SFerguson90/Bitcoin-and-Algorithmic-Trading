@@ -1,5 +1,7 @@
+# Imports
 import zmq, math, time, random
 
+# Socket OBJs
 context = zmq.Context()
 socket = context.socket(zmq.PUB)
 socket.bind('tcp://127.0.0.1:5555')
@@ -25,9 +27,10 @@ class InstrumentPrice(object):
                                 self.sigma * math.sqrt(dt) * random.gauss(0,1))
         return self.value
 
-    
+# Instantiate the Class OBJ    
 ip = InstrumentPrice()
 
+# Begins running the ticker server
 while True:
     msg = " {} {:.2f}".format(ip.symbol, ip.simulate_value())
     print(msg)
