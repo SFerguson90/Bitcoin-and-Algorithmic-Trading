@@ -24,7 +24,7 @@ PYTHON DEPENDENCIES
 
 ## Challenges
 
-* Abide by the SEC and their KYS/AML regulations
+* Abide by the SEC and their KYC/AML regulations
 * Backtesting the momentum strategy
 
 ## Conclusions
