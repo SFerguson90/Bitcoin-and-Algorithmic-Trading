@@ -10,7 +10,7 @@ load_dotenv(verbose=True)
 alpaca_api_key = os.getenv("ALPACA_API_KEY")
 alpaca_secret_key = os.getenv("ALPACA_SECRET_KEY")
 
-class MomVectorBacktester(object):
+class MomBacktester(object):
 
     '''
     Class for the vectorized backtesting of
@@ -19,7 +19,7 @@ class MomVectorBacktester(object):
     Attributes
     ==========
     symbol: str
-       RIC (financial instrument) to work with
+        financial instrument to work with
     start: str
         start date for data selection
     end: str
@@ -27,7 +27,7 @@ class MomVectorBacktester(object):
     amount: int, float
         amount to be invested at the beginning
     tc: float
-        proportional transaction costs (e.g. 0.5% = 0.005) per trade
+        proportional transaction costs (e.g. 0.1% = 0.001) per trade
 
     Methods
     =======
@@ -66,15 +66,17 @@ class MomVectorBacktester(object):
         req = requests.get(url, headers=header)
         info = json.loads(json.dumps(req.json(), indent=4))[self.symbol]
 
-        # Creating the DataFrame
+        # Empty Lists to Hold Info
         dates = []
         close = []
-
+        
+        # Parse through Data, Append to Lists
         for day in info:
             day['t'] = datetime.fromtimestamp(day['t']).strftime('%Y-%m-%d')
             dates.append(day['t'])
             close.append(day['c'])
-    
+        
+        # Create DataFrames
         raw = pd.DataFrame(data={self.symbol:close}, index=dates)
         raw = raw.loc[self.start:self.end]
         raw.rename(columns={self.symbol: 'price'}, inplace=True)
@@ -109,7 +111,7 @@ class MomVectorBacktester(object):
     def plot_results(self):
         
         '''
-        Plots the cumulative performance of the trading strategy
+        Plots the performance of the trading strategy
         compared to the symbol.
         '''
         
@@ -121,14 +123,14 @@ class MomVectorBacktester(object):
 
 
 if __name__ == '__main__':
-    mombt = MomVectorBacktester('LMT', '2018-1-1', '2020-12-31',
+    LMT = MomBacktester('LMT', '2018-1-1', '2020-12-31',
                                 10000, 0.0)
 
     # Mom = 1
-    print(mombt.run_strategy())
+    print(LMT.run_strategy())
     # Mom = 2
-    print(mombt.run_strategy(momentum=2))
+    print(LMT.run_strategy(momentum=2))
     # Mom = 2 w/ tc (transaction costs)
-    mombt = MomVectorBacktester('LMT', '2018-1-1', '2020-12-31',
+    LMT = MomBacktester('LMT', '2018-1-1', '2020-12-31',
                                 10000, 0.001)
-    print(mombt.run_strategy(momentum=2))
+    print(LMT.run_strategy(momentum=2))
