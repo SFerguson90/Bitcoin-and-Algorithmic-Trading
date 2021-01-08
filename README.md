@@ -27,9 +27,6 @@ PYTHON DEPENDENCIES
 
 ## Contributors
 
-Luis Aguilar
-Prasanna Devalaraju
-Richard Torres
-Scott Ferguson
+Luis Aguilar, Prasanna Devalaraju, Richard Torres and Scott Ferguson
 
 ## Code Citations and Inspirations
