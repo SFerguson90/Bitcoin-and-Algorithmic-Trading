@@ -1,5 +1,5 @@
 {
-  "name": "SMUCoin",
+  "name": "smucoin",
   "version": "1.0.0",
   "description": "SMU Coin blockchain eth test",
   "main": "truffle-config.js",
