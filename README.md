@@ -2,11 +2,9 @@
 
 ![bitcoinMarket](bitcoinMarket.jpg)
 
-Contributors: Luis Aguilar, Prasanna Devalaraju, Richard Torres & Scott Ferguson
+## Technology Stack
 
-## Requirements
-
-##### Modules / Libraries
+* Truffle & Ganache
 
 NODE.JS OR NPM DEPENDENCIES
 * Install Node.JS & NPM
@@ -24,7 +22,14 @@ PYTHON DEPENDENCIES
 
 ## Challenges
 
-* Abide by the SEC and their KYC/AML regulations
-* Backtesting the momentum strategy
+* Abide by the SEC and their KYS/AML regulations
+* Backtesting trading strategies
 
-## Conclusions
+## Contributors
+
+Luis Aguilar
+Prasanna Devalaraju
+Richard Torres
+Scott Ferguson
+
+## Code Citations and Inspirations
