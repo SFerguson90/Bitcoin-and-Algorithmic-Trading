@@ -5,15 +5,18 @@
 ## Technology Stack
 
 * Truffle & Ganache
+* JavaScript
+* HTML
 
 NODE.JS OR NPM DEPENDENCIES
-* Install Node.JS & NPM
-* npm install -g wscat
-
+* Node.JS
+* NPM
+* wscat
 
 PYTHON DEPENDENCIES
 * Python WebSocket Client
 * Alpaca Trade API
+* Dash
 * Streamz 0.6.1
 
 ## Objective
@@ -29,4 +32,6 @@ PYTHON DEPENDENCIES
 
 Luis Aguilar, Prasanna Devalaraju, Richard Torres and Scott Ferguson
 
-## Code Citations and Inspirations
+## Citations / Attributions
+
+"*Python for Algorithmic Trading* by Yves Hilpisch (O'Reilly). Copyright 2021 Yves Hilpisch, 978-1-492-05335-4."
