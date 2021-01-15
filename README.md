@@ -4,15 +4,15 @@
 
 ## Technology Stack
 
-ETHEREUM / CRYPTO STACKS
+TRUFFLE SUITE
 * Truffle
 * Ganache
 * Drizzle
 
-NODE.JS / NPM STACKS
+NODE.JS / NPM
 * WebSocket Cat
 
-PYTHON STACKS
+PYTHON
 * Python WebSocket Client
 * Alpaca Trade API
 * Streamz 0.6.1
@@ -34,4 +34,4 @@ Luis Aguilar, Prasanna Devalaraju, Richard Torres and Scott Ferguson
 
 ## Code Citations and Inspirations
 
-"*Python for Algorithmic Trading* by Yves Hilpisch (O'Reilly). Copyright 2021 Yves Hilpisch, 978-1-492-05335-4"
+*Python for Algorithmic Trading* by Yves Hilpisch (O'Reilly). Copyright 2021 Yves Hilpisch, 978-1-492-05335-4
