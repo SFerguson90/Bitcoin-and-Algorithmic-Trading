@@ -10,9 +10,7 @@ ETHEREUM / CRYPTO STACKS
 * Drizzle
 
 NODE.JS / NPM STACKS
-* Install Node.JS & NPM
-* npm install -g wscat
-
+* WebSocket Cat
 
 PYTHON STACKS
 * Python WebSocket Client
@@ -27,8 +25,8 @@ PYTHON STACKS
 
 ## Challenges
 
-* Abide by the SEC and their KYS/AML regulations
-* Backtesting trading strategies
+* Abide by the SEC and their KYC/AML regulations
+* Backtesting trading strategies with Alpaca data
 
 ## Contributors
 
