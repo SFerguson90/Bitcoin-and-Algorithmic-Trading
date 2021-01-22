@@ -155,4 +155,4 @@ if __name__ == '__main__':
     print(bb.data.info())
     print(bb.data.tail())
     bb.plot_data()
-    plt.savefig('../../images/ch06/backtestbaseplot.png')
+    #plt.savefig('../../images/ch06/backtestbaseplot.png')

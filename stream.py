@@ -92,7 +92,6 @@ def on_message(ws, message):
         times.append(time)
         prices.append(ask_price)
         df = df.append(pd.DataFrame(data={symbol:ask_price}, index=[time]))
-        app.callback(Output('live-graph', 'figure'),[Input('graph-update', 'n_intervals')])
 
     if message_data["data"]["ev"] == 'T':
 

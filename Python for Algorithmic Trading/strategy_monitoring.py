@@ -12,10 +12,10 @@ context = zmq.Context()
 socket = context.socket(zmq.SUB)
 
 # adjust the IP address to reflect the remote location
-socket.connect('tcp://134.122.70.51:5555')
+#socket.connect('tcp://134.122.70.51:5555')
 
 # local IP address used for testing
-# socket.connect('tcp://0.0.0.0:5555')
+socket.connect('tcp://0.0.0.0:5555')
 
 
 # configures the socket to retrieve every message

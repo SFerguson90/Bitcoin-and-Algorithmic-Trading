@@ -3,14 +3,13 @@
 # Online Algorithm, Logging, Monitoring
 #
 
-from dotenv import load_dotenv
-import zmq
-from tpqoa import tpqoa2
-import pickle
+import zmq, pickle
 import numpy as np
 import pandas as pd
 import datetime as dt
 from datetime import date
+from tpqoa import tpqoa2
+from dotenv import load_dotenv
 
 today = date.today()
 log_file = f'automated_strategy {today}.log'
@@ -23,7 +22,7 @@ context = zmq.Context()
 socket = context.socket(zmq.PUB)
 
 # this binds the socket communication to all IP addresses of the machine
-socket.bind('tcp://127.0.0.1:5555')
+socket.bind('tcp://0.0.0.0:5555')
 
 # recreating the log file
 with open(log_file, 'w') as f:
@@ -59,9 +58,9 @@ class MLTrader(tpqoa2.tpqoa2):
         self.std = algorithm['std']
         self.units = 100000
         self.position = 0
-        self.bar = '15M'
-        self.window = 2
-        self.lags = 32 #Must be inline with algorithm
+        self.bar = '5s'
+        self.window = 10
+        self.lags = 12 #Must be inline with algorithm
         self.min_length = self.lags + self.window + 1
         self.features = ['return', 'vol', 'mom', 'sma', 'ema', 'min', 'max']
         self.raw_data = pd.DataFrame()
@@ -107,6 +106,8 @@ class MLTrader(tpqoa2.tpqoa2):
         self.data = self.raw_data.resample(
             self.bar, label='right').last().ffill()
         self.data = self.data.iloc[:-1]
+
+
         if len(self.data) > self.min_length:
             logger_monitor('NUMBER OF TICKS: {} | '.format(self.ticks) +
                            'NUMBER OF BARS: {}'.format(self.min_length))
@@ -116,13 +117,17 @@ class MLTrader(tpqoa2.tpqoa2):
             features = self.data[self.cols].iloc[-1].values.reshape(1, -1)
             signal = self.model.predict(features)[0]
             #print(self.model.predict(features))
-            # logs and sends major financial information
+
+            # LOGS AND SENDS MAJOR FINANCIAL INFORMATION
             logger_monitor('MOST RECENT DATA\n' +
                            str(self.data[self.cols].tail()),
                            False)
+
             logger_monitor('features:\n' + str(features) + '\n' +
                            'position: ' + str(self.position) + '\n' +
                            'signal:   ' + str(signal), False)
+
+
             if self.position in [0, -1] and signal == 1:  # going long?
                 order = self.create_order(self.stream_instrument,
                                           units=(1 - self.position) *
@@ -130,6 +135,8 @@ class MLTrader(tpqoa2.tpqoa2):
                                           suppress=True, ret=True)
                 self.report_trade('LONG', order)
                 self.position = 1
+
+
             elif self.position in [0, 1] and signal == -1:  # going short?
                 order = self.create_order(self.stream_instrument,
                                           units=-(1 + self.position) *
@@ -137,6 +144,8 @@ class MLTrader(tpqoa2.tpqoa2):
                                           suppress=True, ret=True)
                 self.report_trade('SHORT', order)
                 self.position = -1
+
+
             else:  # no trade
                 logger_monitor('*** NO TRADE PLACED ***')
 
