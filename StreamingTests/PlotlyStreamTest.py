@@ -1,11 +1,20 @@
 # IMPORTS
-import panel as pn
 import v20, os, zmq, time
 import pandas as pd
 from dotenv import load_dotenv
 from datetime import datetime
-import plotly.graph_objects as go
-pn.extension("plotly")
+
+# Dash / Plotly Imports
+import dash
+from dash.dependencies import Output, Input
+import dash_core_components as dcc
+import dash_html_components as html
+import plotly
+import plotly.graph_objs as go
+
+# Running 2 functions at once
+from multiprocessing import Process
+import sys
 
 # ACCOUNT / ACCESS
 load_dotenv(verbose=True)
@@ -19,6 +28,13 @@ stream_hostname = 'stream-fxpractice.oanda.com'
 stop_stream = False
 instrument = "EUR_USD"
 
+global times
+times = list()
+times.append(1)
+global prices
+prices = list()
+prices.append(1)
+
 ctx_stream = v20.Context(
             hostname=stream_hostname,
             port=443,
@@ -29,6 +45,18 @@ response = ctx_stream.pricing.stream(account_id,
                                      snapshot=True,
                                      instruments=instrument)
 
+app = dash.Dash(__name__)
+app.layout = html.Div(
+    [
+        dcc.Graph(id='live-graph', animate=True),
+        dcc.Interval(
+            id='graph-update',
+            interval=1000,
+            n_intervals = 0
+        ),
+    ]
+)
+
 def stream_data(instrument=instrument, stop=None, ret=False):
         '''
         Starts a real-time data stream.
@@ -38,11 +66,7 @@ def stream_data(instrument=instrument, stop=None, ret=False):
         instrument: string
             valid instrument name
         '''
-        
-        df = pd.DataFrame()
-        times = list()
-        prices = list()
-        
+
         stream_instrument = instrument
         ticks = 0
         response = ctx_stream.pricing.stream(
@@ -51,27 +75,22 @@ def stream_data(instrument=instrument, stop=None, ret=False):
         msgs = []
         for msg_type, msg in response.parts():
             msgs.append(msg)
-            # print(msg_type, msg)
+            print(msg_type, msg)
             if msg_type == 'pricing.ClientPrice':
-                
+
+                df = pd.DataFrame()
+
                 ticks += 1
                 t = datetime.now()
                 bids = msg.bids[0].dict()['price']
                 asks = msg.asks[0].dict()['price']
-                
+
                 prices.append(asks)
                 times.append(t)
                 df = df.append(pd.DataFrame({instrument:float(asks)}, index=[t]))
                 df['SMA 20'] = df[instrument].rolling(20).mean()
                 df['SMA 50'] = df[instrument].rolling(50).mean()
-                
-                fig.data[0].x = df.index
-                fig.data[1].x = df.index
-                fig.data[2].x = df.index
-                fig.data[0].y = df[instrument]
-                fig.data[1].y = df['SMA 20']
-                fig.data[2].y = df['SMA 50']
-                
+
                 if stop is not None:
                     if ticks >= stop:
                         if ret:
@@ -81,12 +100,30 @@ def stream_data(instrument=instrument, stop=None, ret=False):
                 if ret:
                     return msgs
                 break
-                
-fig = go.FigureWidget()
-fig.add_scatter(name=instrument, line=dict(color='gold'))
-fig.add_scatter(name="SMA 20", line=dict(color='firebrick', width=2, dash='dot'), mode='lines+markers')
-fig.add_scatter(name="SMA 50", line=dict(color='royalblue', width=2, dash='dot'), mode='lines+markers')
 
+@app.callback(Output('live-graph', 'figure'),
+        [Input('graph-update', 'n_intervals')])
+def update_graph_scatter(n):
 
-dynamic_chart = pn.Pane(fig.show())
-dynamic_chart.servable()
+    data = plotly.graph_objs.Scatter(
+                x=list(times),
+                y=list(prices),
+                name='Scatter',
+                mode= 'lines+markers'
+                )
+
+    return {'data': [data],'layout' : go.Layout(xaxis=dict(range=[min(times),max(times)]),
+                                                yaxis=dict(range=[min(prices),max(prices)])
+                                                )}
+
+#if __name__ == '__main__':
+    #app.run_server(debug=True)
+
+if __name__ == "__main__":
+    p1 = Process(target=stream_data())
+    p1.start()
+    p2 = Process(target=app.run_server(debug=True))
+    p2.start()
+
+    p1.join()
+    p2.join()

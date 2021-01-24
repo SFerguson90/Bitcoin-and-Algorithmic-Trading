@@ -13,7 +13,7 @@ from collections import deque
 from dotenv import load_dotenv
 
 # VARIABLES
-symbol = "TSLA"
+symbol = "SPY"
 times = deque(maxlen=500)
 times.append(1)
 prices = deque(maxlen=500)
@@ -30,22 +30,21 @@ load_dotenv(verbose=True)
 alpaca_api_key = os.getenv("ALPACA_API_KEY")
 alpaca_secret_key = os.getenv("ALPACA_SECRET_KEY")
 
+
+app = dash.Dash(__name__)
+app.layout = html.Div([
+        dcc.Graph(id='live-graph', animate=True),
+        dcc.Interval(
+            id='graph-update',
+            interval=100,
+            n_intervals = 0
+        )
+    ])
 ###### FUNCTIONS / DICTIONARIES TO SEND / MESSAGES
 
 # OPEN
 def on_open(ws):
     print("Opening Connection to Alpaca API Services")
-
-    app = dash.Dash(__name__)
-    app.layout = html.Div([
-            dcc.Graph(id='live-graph', animate=True),
-            dcc.Interval(
-                id='graph-update',
-                interval=100,
-                n_intervals = 0
-            )
-        ])
-    app.run_server(debug=True)
 
     auth_data = {
         "action": "authenticate",
@@ -66,8 +65,10 @@ def on_open(ws):
 
     ws.send(json.dumps(channel_data))
 
+@app.callback(Output('live-graph','figure'),
+        [Input('graph-update','n_intervals')])
 def on_message(ws, message):
-    #print("\n", "="*30, "MESSAGE", "="*30, "\n\n",message,'\n')
+    print("\n", "="*30, "MESSAGE", "="*30, "\n\n",message,'\n')
 
     # Turn string into dictionary
     message_data = json.loads(message)
@@ -76,6 +77,13 @@ def on_message(ws, message):
     global times
     global prices
     global df
+
+    data = plotly.graph_objs.Scatter(
+                x=list(times),
+                y=list(prices),
+                name='Scatter',
+                mode= 'lines+markers'
+                )
 
     # VARIABLES
     if message_data["data"]["ev"] == 'Q':
@@ -92,7 +100,7 @@ def on_message(ws, message):
         times.append(time)
         prices.append(ask_price)
         df = df.append(pd.DataFrame(data={symbol:ask_price}, index=[time]))
-
+        print(ask_price)
     if message_data["data"]["ev"] == 'T':
 
         # VARIABLES FOR TRADE SCHEMA
@@ -110,23 +118,11 @@ def on_message(ws, message):
         low_price = message_data["data"]["l"]
         close_price = message_data["data"]["c"]
 
+    return {'data': [data],'layout' : go.Layout(xaxis=dict(range=[min(times),max(times)]),
+                                                yaxis=dict(range=[min(prices),max(prices)]),)}
 # CLOSE
 def on_close(ws):
     print("Closing Connection to Alpaca API Services")
-
-def update_graph_scatter(n):
-    times.append(times)
-    prices.append(prices)
-
-    data = plotly.graph_objs.Scatter(
-            x=list(times),
-            y=list(prices),
-            name='Scatter',
-            mode= 'lines+markers'
-            )
-
-    return {'data': [data],'layout' : go.Layout(xaxis=dict(range=[min(times),max(times)]),
-                                                yaxis=dict(range=[min(prices),max(prices)]),)}
 
 
 
@@ -138,4 +134,4 @@ ws = websocket.WebSocketApp(socket, on_open=on_open,
 
 # GO GO GO
 if __name__ == '__main__':
-    running_man = ws.run_forever()
+    ws.run_forever()
