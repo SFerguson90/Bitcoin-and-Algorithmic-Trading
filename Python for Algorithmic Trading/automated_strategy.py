@@ -14,7 +14,8 @@ from dotenv import load_dotenv
 today = date.today()
 log_file = f'automated_strategy {today}.log'
 
-# loads the persisted algorithm object
+# Loads the persisted algorithm object
+# AutoStrat & Pickle should be in same folder
 algorithm = pickle.load(open('algorithm.pkl', 'rb'))
 
 # sets up the socket communication via ZeroMQ (here: "publisher")
